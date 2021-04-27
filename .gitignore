@@ -1,0 +1,8 @@
+*.idea
+*env
+venv
+*tmp
+*node_modules
+*.env
+*tests/RTSP/test
+*__pycache__
