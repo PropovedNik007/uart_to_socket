@@ -155,22 +155,20 @@ if __name__ == '__main__':
 
     request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
     ser.write(request)
-    print(request)
-    print(struct.unpack('2sBBBBH2s', request))
-    time.sleep(1)
+    print("UART write", struct.unpack('2sBBBBH2s', request))
+    time.sleep(0.04)
 
-    # ser = serial.Serial(port="/dev/ttyUSB0", baudrate=115200, timeout=1.0)
-    for i in range(0, 90):
-        preamble = b'\x5A\x5A'
-        size = 10
-        device_type = i
-        device_id = i
-        mess = 1
-        body = struct.pack('BBBB', size, device_type, device_id, mess)
-        crc = (crc16.crc16xmodem(body))
-        postamble = b'\x7a\x7a'
-        request1 = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
-        ser.write(request1)
-        print(request1)
-        print("UART", struct.unpack('2sBBBBH2s', request1))
-        time.sleep(0.04)
+    # for i in range(0, 255):
+    #     preamble = b'\x5A\x5A'
+    #     size = 10
+    #     device_type = i
+    #     device_id = i
+    #     mess = 1
+    #     body = struct.pack('BBBB', size, device_type, device_id, mess)
+    #     crc = (crc16.crc16xmodem(body))
+    #     postamble = b'\x7a\x7a'
+    #     request1 = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
+    #     ser.write(request1)
+    #     print(request1)
+    #     print("UART", struct.unpack('2sBBBBH2s', request1))
+    #     time.sleep(0.1)

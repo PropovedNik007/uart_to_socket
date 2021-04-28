@@ -153,6 +153,7 @@ class Packet(object):
     def start_package(self, ser):
         while True:
             while ser.read(1) != self.preamble[:1]:
+                # print("not")
                 time.sleep(0.01)
             if ser.read(1) == self.preamble[1:2]:
                 # print("Preamble")
@@ -164,16 +165,6 @@ class Packet(object):
 if __name__ == '__main__':
     # ser = serial.Serial(port="/dev/ttyUSB0", bytesize=8, stopbits=1, timeout=1.0)
     ser = serial.Serial(port="/dev/ttyUSB0", baudrate=115200, timeout=0.01)
-    # preamble = b'5A5A'
-    # size = bytes(8)
-    # type_pack = b'01'
-    # mess = b'00'
-    # crc = (crc16.crc16xmodem(size + type_pack + mess))
-    # postamble = preamble
-    # pack_cmd = Packet(preamble, size, type_pack, mess, crc, postamble)
-    # pack_cmd.open()
-    # request = struct.unpack('2sBBBBH2s', rcv)
-    # request = struct.pack('2sBBBBH2s', rcv)
 
     sock = socket.socket()
     sock.connect(('localhost', 9090))
@@ -201,23 +192,36 @@ if __name__ == '__main__':
             output = {
                 "Time": now.isoformat(),
                 "DeviceType": pack_cmd.device_type,
-                "DeviceId,": pack_cmd.device_id,
+                "DeviceId": pack_cmd.device_id,
                 "Data": pack_cmd.mess,
             }
             socket_data = json.dumps(output)
-            print("SOCKET send", socket_data)
 
             # # Connect to server and send data
             sock.sendall(bytes(socket_data, encoding="utf-8"))
-            # data = sock.recv(1024)
+            time.sleep(0.01)
             # # Receive data from the server and shut down
-            # received = sock.recv(1024)
-            # received = received.decode("utf-8")
+            received = sock.recv(1024)
+            received = received.decode("utf-8")
+            received = json.loads(received)
+            device_type = received.get("DeviceType")
+            device_id = received.get("DeviceId")
+            mess = received.get("Data")
+
+            preamble = b'\x5A\x5A'
+            size = 10
+            body = struct.pack('BBBB', size, device_type, device_id, mess)
+            crc = (crc16.crc16xmodem(body))
+            postamble = b'\x7a\x7a'
+
+            request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
+            ser.write(request)
             #
-            # print("Sent:     {}".format(socket_data))
-            # print("Received: {}".format(received))
+            print("Socket Sent:     {}".format(socket_data))
+            print("Socket Received: {}".format(received))
 
             time.sleep(0.01)
+            ser.write(request)
             continue
     sock.close()
 
