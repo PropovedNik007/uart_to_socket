@@ -56,7 +56,7 @@ class Packet(object):
     def __del__(self):
         self.close(ser)
 
-    def serial_read(self):
+    def serial_read(self, ser):
 
         # Ищем преамбулу
         head = self.start_package(ser)
@@ -193,6 +193,7 @@ if __name__ == '__main__':
         socket_ip = socket_cfg['ip']
     # ser = serial.Serial(port="/dev/ttyUSB0", bytesize=8, stopbits=1, timeout=1.0)
     ser = serial.Serial(port=uart_port_read, baudrate=uart_baudrate, timeout=uart_timeout)
+    ser_write = serial.Serial(port=uart_port_write, baudrate=uart_baudrate, timeout=uart_timeout)
 
     sock = socket.socket()
     sock.connect((socket_ip, socket_port))
@@ -201,7 +202,7 @@ if __name__ == '__main__':
 
     while ser:
         pack_cmd = Packet()
-        if not pack_cmd.serial_read():
+        if not pack_cmd.serial_read(ser):
             time.sleep(0.01)
             continue
         else:
@@ -243,7 +244,7 @@ if __name__ == '__main__':
             postamble = b'\x7a\x7a'
 
             request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
-            ser_write = serial.Serial(port=uart_port_write, baudrate=uart_baudrate, timeout=uart_timeout)
+            # ser_write = serial.Serial(port=uart_port_write, baudrate=uart_baudrate, timeout=uart_timeout)
             ser_write.write(request)
             # ser.write(request)
             #
