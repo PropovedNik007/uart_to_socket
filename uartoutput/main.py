@@ -6,14 +6,28 @@ import datetime
 import struct
 import crc16
 import json
+import os
 
 
 class Packet(object):
+
     def __init__(self):
-        self.port = "/dev/ttyUSB0"
-        self.baudrate = 115200
-        self.timeout = 0.01
+        with open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf-8-sig') as file:
+            _conf = json.load(file)
+            uart_cfg = _conf.get('UART')
+            uart_port_read = uart_cfg['port_read']
+            uart_port_write = uart_cfg['port_write']
+            uart_baudrate = uart_cfg['baudrate']
+            uart_timeout = uart_cfg['timeout']
+            socket_cfg = _conf.get('SOCKET')
+            socket_port = socket_cfg['port']
+            socket_ip = socket_cfg['ip']
+        self.port = uart_port_read
+        self.port_write = uart_port_write
+        self.baudrate = uart_baudrate
+        self.timeout = uart_timeout
         self.ser = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
+        self.ser_write = serial.Serial(port=self.port_write, baudrate=self.baudrate, timeout=self.timeout)
         self.preamble = b'\x5A\x5A'
         self.size = 10
         self.device_type = 255
@@ -27,7 +41,7 @@ class Packet(object):
         self.ser = None
 
         try:
-            self.ser = serial.Serial(port="/dev/ttyUSB0", baudrate=115200, timeout=self.timeout)
+            self.ser = serial.Serial(port=self.port, baudrate=self.baudrate, timeout=self.timeout)
             print("Open serial UART")
         except Exception as e:
             print(e)
@@ -152,8 +166,11 @@ class Packet(object):
 
     def start_package(self, ser):
         while True:
+            # byte = ser.read(1)
             while ser.read(1) != self.preamble[:1]:
-                # print("not")
+            # while byte != self.preamble[:1]:
+            #     if byte != b'':
+            #         print("not", byte)
                 time.sleep(0.01)
             if ser.read(1) == self.preamble[1:2]:
                 # print("Preamble")
@@ -163,11 +180,22 @@ class Packet(object):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    with open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf-8-sig') as file:
+        _conf = json.load(file)
+        uart_cfg = _conf.get('UART')
+        uart_port_read = uart_cfg['port_read']
+        uart_port_write = uart_cfg['port_write']
+        uart_baudrate = uart_cfg['baudrate']
+        uart_timeout = uart_cfg['timeout']
+
+        socket_cfg = _conf.get('SOCKET')
+        socket_port = socket_cfg['port']
+        socket_ip = socket_cfg['ip']
     # ser = serial.Serial(port="/dev/ttyUSB0", bytesize=8, stopbits=1, timeout=1.0)
-    ser = serial.Serial(port="/dev/ttyUSB0", baudrate=115200, timeout=0.01)
+    ser = serial.Serial(port=uart_port_read, baudrate=uart_baudrate, timeout=uart_timeout)
 
     sock = socket.socket()
-    sock.connect(('localhost', 9090))
+    sock.connect((socket_ip, socket_port))
 
     # sock.close()
 
@@ -215,13 +243,16 @@ if __name__ == '__main__':
             postamble = b'\x7a\x7a'
 
             request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
-            ser.write(request)
+            ser_write = serial.Serial(port=uart_port_write, baudrate=uart_baudrate, timeout=uart_timeout)
+            ser_write.write(request)
+            # ser.write(request)
             #
             print("Socket Sent:     {}".format(socket_data))
             print("Socket Received: {}".format(received))
+            print("UART write:      {}".format(request))
 
             time.sleep(0.01)
-            ser.write(request)
+            # ser.write(request)
             continue
     sock.close()
 

@@ -1,0 +1,12 @@
+{
+  "UART": {
+    "port_read": "/dev/ttyUSB0",
+    "port_write": "/dev/ttyUSB1",
+    "baudrate": 115200,
+    "timeout": 0.01
+  },
+  "SOCKET": {
+    "port": 9090,
+    "ip": "localhost"
+  }
+}

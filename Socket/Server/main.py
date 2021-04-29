@@ -1,12 +1,21 @@
 import socket
 import datetime
 import json
+import os
+import time
 
 if __name__ == '__main__':
 
+    with open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf-8-sig') as file:
+        _conf = json.load(file)
+        socket_cfg = _conf.get('SOCKET')
+        socket_port = socket_cfg['port']
+        socket_ip = socket_cfg['ip']
+
     sock = socket.socket()
-    sock.bind(('', 9090))
-    sock.listen(2)
+    sock.bind(('', socket_port))
+    # sock.bind((socket_ip, socket_port))
+    sock.listen(1)
     conn, addr = sock.accept()
 
     print('connected:', addr)
@@ -30,6 +39,7 @@ if __name__ == '__main__':
         socket_data = bytes(socket_data, encoding="utf-8")
         conn.send(socket_data)
         print("Socket Sent:     {}".format(socket_data))
-        # time.sleep(0.04)
+        time.sleep(0.04)
 
     # conn.close()
+    sock.close()
