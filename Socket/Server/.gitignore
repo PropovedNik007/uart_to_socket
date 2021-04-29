@@ -1,0 +1,6 @@
+*.idea
+env
+venv
+tmp
+*node_modules
+.env

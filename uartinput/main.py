@@ -1,5 +1,6 @@
 import errno
-
+import os
+import json
 import serial
 import time
 import struct
@@ -142,8 +143,16 @@ class Packet(object):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    with open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf-8-sig') as file:
+        _conf = json.load(file)
+        uart_cfg = _conf.get('UART')
+        uart_port_read = uart_cfg['port_read']
+        uart_port_write = uart_cfg['port_write']
+        uart_baudrate = uart_cfg['baudrate']
+        uart_timeout = uart_cfg['timeout']
 
-    ser = serial.Serial(port="/dev/ttyUSB0", baudrate=115200, timeout=0.01)
+    ser = serial.Serial(port=uart_port_read,  baudrate=uart_baudrate, timeout=uart_timeout)
+    ser_write = serial.Serial(port=uart_port_write,  baudrate=uart_baudrate, timeout=uart_timeout)
     preamble = b'\x5A\x5A'
     size = 10
     device_type = 255
@@ -154,8 +163,9 @@ if __name__ == '__main__':
     postamble = b'\x7a\x7a'
 
     request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
-    ser.write(request)
+    ser_write.write(request)
     print("UART write", struct.unpack('2sBBBBH2s', request))
+    print("UART", request)
     time.sleep(0.04)
 
     # for i in range(0, 255):
