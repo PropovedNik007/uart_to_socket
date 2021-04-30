@@ -241,7 +241,7 @@ if __name__ == '__main__':
             size = 10
             body = struct.pack('BBBB', size, device_type, device_id, mess)
             crc = (crc16.crc16xmodem(body))
-            postamble = b'\x7a\x7a'
+            postamble = b'\x7B\x7B'
 
             request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
             # ser_write = serial.Serial(port=uart_port_write, baudrate=uart_baudrate, timeout=uart_timeout)

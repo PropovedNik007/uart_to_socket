@@ -157,14 +157,14 @@ if __name__ == '__main__':
     size = 10
     device_type = 255
     device_id = 255
-    mess = 0
-    body = struct.pack('BBBB', size, device_type, device_id, mess)
+    mess = bytes(0)
+    body = struct.pack('BBB' + str(size) + 'c', size, device_type, device_id, mess)
     crc = (crc16.crc16xmodem(body))
     postamble = b'\x7a\x7a'
 
-    request = struct.pack('2sBBBBH2s', preamble, size, device_type, device_id, mess, crc, postamble)
+    request = struct.pack('2sBBB' + str(size) + 'cH2s', preamble, size, device_type, device_id, mess, crc, postamble)
     ser_write.write(request)
-    print("UART write", struct.unpack('2sBBBBH2s', request))
+    print("UART write", struct.unpack('2s' + str(size) + 'cBBBH2s', request))
     print("UART", request)
     time.sleep(0.04)
 

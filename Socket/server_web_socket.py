@@ -155,6 +155,7 @@ class Web_Server_Protocol(WebSocketServerProtocol):
                 data = json.loads(message)
                 if data.get("request","") == "getSensorsData":
                     ws.request_filter = data.get("type", [])
+                await ws.send(message)
         except:
             await asyncio.sleep(1)
             return
@@ -192,9 +193,8 @@ class Web_Server_Protocol(WebSocketServerProtocol):
         msg - Словарь содержащий сообщение от HUBа в распарсеном виде
         """
         answer = {
-            "answer": "getSensorsData"
+            "answer": "dfgdfgdf"
         }
-        answer["data"] = {x:msg[x] for x in self._request_filter}
         await websockets.WebSocketClientProtocol.send(self, json.dumps(answer))
 
     @property
@@ -230,7 +230,7 @@ class Web_Server():
 
         self.ws = dict()
 
-        self.msg_parser = Web_Server_Parser()
+        # self.msg_parser = Web_Server_Parser()
 
         self.ip, self.port = None, None
 
@@ -257,9 +257,9 @@ class Web_Server():
             raise(e)
 
     async def stop_serve(self):
-        '''
+        """
         Остановить сервер
-        '''
+        """
         if self.tcp_client is not None:
             self.tcp_client.unregister_GPS_DUT_client(f"{self.ip}:{self.port}")
         self.ip, self.port = None, None
@@ -281,13 +281,13 @@ class Web_Server():
         print(f"Connection {peername} established")
 
     def connection_lost(self, ws, exc):
-        '''
+        """
         Удалить клиента из словаря подключений
         Callback функция вызываема при отключении клиента
         -----------------
         ws - ссылка на подключение
-        exc - 
-        '''
+        exc -
+        """
         peername = ws.transport.get_extra_info('peername')
         self.ws.pop(str(peername), None)
         print(f"Lost connection {peername}")
@@ -299,9 +299,9 @@ class Web_Server():
         -----------------
         msg - строка сообщения
         '''
-        self.msg_parser.msg = msg
+        # self.msg_parser.msg = msg
         for ws in self.ws.values():
-            asyncio.create_task(ws.send(self.msg_parser.msg))
+            asyncio.create_task(ws.send(msg))
 
     def get_protocol(self, *args, **kwargs):
         return Web_Server_Protocol(self, *args, **kwargs)
@@ -323,6 +323,19 @@ async def main():
 
         message = f"$5543.17322;N;03738.16101;E;0;0;12;134;NA;{i};11#"
         server.send2all(message)
+
+
+        # for ws in server.ws.values():
+        #     asyncio.create_task(ws.send(msg))
+
+
+
+        ip, port = server.ip, server.port
+        server.start_server = await websockets.serve(
+            Web_Server_Protocol.request_handler,
+            ip, port,
+            create_protocol=server.get_protocol
+        )
         i += 1
         await asyncio.sleep(1)
     

@@ -29,7 +29,7 @@ class Websocket_client(object):
     
     async def send_recive_loop(self):
         """
-        Цикл приемки о отправки сообщений
+        Цикл приемки об отправке сообщений
         """
         loop = asyncio.get_event_loop()
         stop = loop.create_future()
@@ -46,7 +46,8 @@ class Websocket_client(object):
                 try:
                     self.websocket = await asyncio.wait_for(websockets.connect(self.adrr), timeout=self.timeout)
                     # asyncio.create_task(self.send_msg("{\n\"gtp\": \"uuid\"\n}"))
-                    await self.send_msg(json.dumps(self.request))
+                    # await self.send_msg(json.dumps(self.request))
+                    await self.send_msg(json.dumps({'request': 'getSensorsData', 'type': ['1111', '111']}))
                 except Exception as e:
                     if len(e.args) == 0:
                         print(f"Timeout error ('{self.adrr}')")
@@ -58,7 +59,9 @@ class Websocket_client(object):
             
             try:
                 msg = await self.websocket.recv()
+                sent = await self.send_msg(json.dumps({'request': 'getSensorsData', 'type': ['1111', '111']}))
                 print(json.loads(msg))
+                print(json.loads(sent))
             except Exception as e:
                 self.websocket.close()
                 self.websocket = None
